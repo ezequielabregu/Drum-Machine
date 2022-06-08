@@ -38,6 +38,7 @@ crash = mixer.Sound('sounds/crash.wav')
 clap = mixer.Sound('sounds/clap.wav')
 tom = mixer.Sound('sounds/tom.wav')
 
+
 def play_notes():
     for i in range(len(clicked)):
         if clicked[i][active_beat] == 1:
@@ -124,9 +125,9 @@ while run:
             active_length = 0
             if active_beat < beats - 1:
                 active_beat += 1                                                # beat count 1 2 3 4...
-                beat_change = True
+                beat_changed = True
             else:
                 active_beat = 0
-                beat_change = True
+                beat_changed = True
     pygame.display.flip()
 pygame.quit()
