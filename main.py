@@ -11,7 +11,8 @@ white = (255, 255, 255)
 gray = (128, 128, 128)
 green = (0, 255, 0)
 gold = (212, 175, 55)
-tickness1 = 1
+blue = (0, 255, 255)
+tickness1 = 5
 
 
 screen = pygame.display.set_mode([WITH, HEIGHT])                        #create screen
@@ -20,12 +21,17 @@ label_font = pygame.font.Font('Roboto-Bold.ttf', 32)
 
 fps = 60                                                                        # Frame rate
 timer = pygame.time.Clock()                                                     # MASTER CLOCK
-instruments = 6
-beats = 8
+instruments = 6                                                                 # number of instruments
+beats = 8                                                                       # beats number
 boxes = []
-clicked = [[-1 for _ in range(beats)] for _ in range(instruments)]
+clicked = [[-1 for _ in range(beats)] for _ in range(instruments)]              # negative coordenates list
+bpm = 240                                                                       # initial BPM
+playing = True
+active_length = 0
+active_beat = 1
+beat_changed = True
 
-def draw_grid(clicks):
+def draw_grid(clicks, beat):
     left_box = pygame.draw.rect(screen, gray, [0, 0, 200, HEIGHT], tickness1)           # left box-Arguments (x, y, with, height, tick)
     botton_box = pygame.draw.rect(screen, gray, [0, HEIGHT - 200, WITH, 200], tickness1)
     boxes = []                                                                  # steps
@@ -46,34 +52,23 @@ def draw_grid(clicks):
     for i in range(instruments):
         pygame.draw.line(screen, gray, (0, i * 100), (200, i * 100), tickness1)     #surface, color, start position (x, y), end position, with
 
-    for i in range(beats):
+    for i in range(beats):                                                  # NESTED Loop
         for j in range(instruments):
-            if clicks[j][i] == -1:
+            if clicks[j][i] == -1:                                          # if we get negative click, the color is grey
                 color = gray
-            else:
+            else:                                                           # if the click is positive, color will be green
                 color = green
-            rect = pygame.draw.rect(screen, color,
-                                    [i * ((WITH - 200) // beats) + 200,     # initial position (x axis)
-                                    (j * 100 + 5),                              # initial position (y axis)
-                                    ((WITH - 200)) // beats - 10,                # with
-                                    ((HEIGHT - 200) // instruments) - 10],       # high
+            rect = pygame.draw.rect(screen, color,                              # TEST --> print(f"i: {i}  j: {j}  rect: {rect}")
+                                    [i * ((WITH - 200) // beats) + 205,         # initial position (x axis)
+                                    (j * 100) + 5,                              # initial position (y axis)
+                                    (WITH - 200) // beats - 10,                 # with with a bias
+                                    ((HEIGHT - 200) // instruments) - 10],      # high
                                     0, 3)
+            pygame.draw.rect(screen, gold,[i * ((WITH - 200) // beats) + 200, (j * 100), ((WITH - 200)) // beats, ((HEIGHT - 200) // instruments)], 5, 5)
+            pygame.draw.rect(screen, black, [i * ((WITH - 200) // beats) + 200, (j * 100), ((WITH - 200)) // beats, ((HEIGHT - 200) // instruments)], 3, 5)
 
-            pygame.draw.rect(screen, gold,
-                                    [i * ((WITH - 200) // beats) + 200,  # initial position (x axis)
-                                    (j * 100),  # initial position (y axis)
-                                    ((WITH - 200)) // beats,  # with
-                                    ((HEIGHT - 200) // instruments)],  # high
-                                    5, 5)
-
-            pygame.draw.rect(screen, black,
-                                [i * ((WITH - 200) // beats) + 200,  # initial position (x axis)
-                                (j * 100),  # initial position (y axis)
-                                ((WITH - 200)) // beats,  # with
-                                ((HEIGHT - 200) // instruments)],  # high
-                                5, 5)
-
-            boxes.append((rect, (i, j)))                                    #ESTO NO LO ENTIENDO
+            boxes.append((rect, (i, j)))                                        # this list box was empty. So it add boxes as a list
+        active = pygame.draw.rect(screen, blue, [beat * ((WITH - 200) // beats) + 200, 0,((WITH - 200) // beats), instruments * 100], 5, 3)
     return boxes
 
 
@@ -82,16 +77,29 @@ run = True                                                                  # st
 while run:
     timer.tick(fps)
     screen.fill(black)                                                          # meanwhile the game is ON, fill the screen
-    draw_grid(clicked)
-    boxes = draw_grid(clicked)
+    boxes = draw_grid(clicked, active_beat)
 
     for event in pygame.event.get():                                            # check if someone is pressing a key, mouse, etc (every event)
         if event.type == pygame.QUIT:                                           # if some quit, stop the game
             run = False                                                         # stop the game
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            for i in range (len(boxes)):
-                if boxes[i][0].collidepoint(event.pos):                                    # chekea si lo hace dentro del mouse
-                    coords = boxes[i][1]
+        if event.type == pygame.MOUSEBUTTONDOWN:                                # if someone down the mouse button
+            for i in range(len(boxes)):                                         # in range of boxes = beats (0 - 47) (only if mousebuttondown is True)
+                if boxes[i][0].collidepoint(event.pos):                         # TRUE if the mouse is inside the rectangle / event.pos get mouse pointer on screen (x, y)
+                    coords = boxes[i][1]                                        # get coordenates (not pixels, instead boxes cells) on every click
                     clicked[coords[1]][coords[0]] *= -1
+
+    beat_length = (fps * 60) // bpm                                                   # 3600 = fps * 60 sec
+
+    if playing:                                                                 # THIS SECTION IS A BEAT COUNTER
+        if active_length < beat_length:                                         # if active length is less than beat_length...
+            active_length += 1                                                  # active_length +1
+        else:
+            active_length = 0
+            if active_beat < beats - 1:
+                active_beat += 1                                                # beat count 1 2 3 4...
+                beat_change = True
+            else:
+                active_beat = 0
+                beat_change = True
     pygame.display.flip()
 pygame.quit()
