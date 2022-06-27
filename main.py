@@ -1,4 +1,3 @@
-from calendar import c
 import pygame
 from pygame import mixer
 
