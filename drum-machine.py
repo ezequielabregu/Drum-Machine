@@ -160,7 +160,7 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # in range of boxes = beats (0 - 47) (only if mousebuttondown is True)
             for i in range(len(boxes)):
-                print(boxes)
+                #print(boxes)
                 # TRUE if the mouse is inside the rectangle (COLLISSION) / event.pos get mouse pointer on screen (x, y)
                 if boxes[i][0].collidepoint(event.pos):
                     # get coordenates (not pixels, instead boxes cells) on every click
